@@ -33,13 +33,12 @@ $config = [
         ],
     ],
     'params' => $params,
-    /*
-    'controllerMap' => [
-        'fixture' => [ // Fixture generation command line.
-            'class' => 'yii\faker\FixtureController',
+
+    'modules'=>[
+        'user-management' => [
+            'class' => 'webvimark\modules\UserManagement\UserManagementModule',
         ],
     ],
-    */
 ];
 
 if (YII_ENV_DEV) {
