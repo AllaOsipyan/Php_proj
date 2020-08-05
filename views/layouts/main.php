@@ -4,6 +4,7 @@
 /* @var $content string */
 
 use app\widgets\Alert;
+use webvimark\modules\UserManagement\models\User;
 use yii\helpers\Html;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
@@ -28,6 +29,8 @@ AppAsset::register($this);
 
 <div class="wrap">
     <?php
+    use webvimark\modules\UserManagement\components\GhostMenu;
+    use webvimark\modules\UserManagement\UserManagementModule;
     NavBar::begin([
         'brandLabel' => Yii::$app->name,
         'brandUrl' => Yii::$app->homeUrl,
@@ -36,27 +39,30 @@ AppAsset::register($this);
         ],
     ]);
     echo Nav::widget([
+        'encodeLabels'=>false,
+        'activateParents'=>true,
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
-            ['label' => 'Home', 'url' => ['/site/index']],
-            ['label' => 'About', 'url' => ['/site/about']],
-            ['label' => 'Contact', 'url' => ['/site/contact']],
-            ['label' => 'Users', 'url' => ['/users']],
-            Yii::$app->user->isGuest ? (
-            ['label' => 'Login', 'url' => ['/site/login']]
-            ) : (
-                '<li>'
-                . Html::beginForm(['/site/logout'], 'post')
-                . Html::submitButton(
-                    'Logout (' . Yii::$app->user->identity->login . ')',
-                    ['class' => 'btn btn-link logout']
-                )
-                . Html::endForm()
-                . '</li>'
-            )
+            [
+                'label' => 'Backend routes',
+                'items'=>UserManagementModule::menuItems()
+            ],
+
+            [
+                'label' => 'Frontend routes',
+                'items'=>[
+                    ['label'=>'Login', 'url'=>['/user-management/auth/login'], 'visible'=>Yii::$app->user->isGuest],
+                    ['label'=>'Logout', 'url'=>['/user-management/auth/logout'], 'visible'=>!Yii::$app->user->isGuest],
+                    ['label'=>'Registration', 'url'=>['/user-management/auth/registration'], 'visible'=>Yii::$app->user->isGuest],
+                    ['label'=>'Change own password', 'url'=>['/user-management/auth/change-own-password']],
+                    ['label'=>'Password recovery', 'url'=>['/user-management/auth/password-recovery']],
+                    ['label'=>'E-mail confirmation', 'url'=>['/user-management/auth/confirm-email']],
+                ],
+            ],
         ],
     ]);
     NavBar::end();
+
     ?>
 
     <div class="container">
