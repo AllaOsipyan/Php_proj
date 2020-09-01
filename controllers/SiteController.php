@@ -12,31 +12,31 @@ use app\models\ContactForm;
 
 class SiteController extends Controller
 {
-    public $freeAccess = true;
+   /* public $freeAccess = true;
     /**
      * {@inheritdoc}
      */
-    public function behaviors()
-    {
-        /*return [
-            'access' => [
-                'class' => AccessControl::className(),
-                'only' => ['logout'],
-                'rules' => [
-                    [
-                        'actions' => ['logout'],
-                        'allow' => true,
-                        'roles' => ['@'],
-                    ],
-                ],
-            ],
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'logout' => ['post'],
-                ],
-            ],*/
-        return [
+    /*   public function behaviors()
+       {
+           /*return [
+               'access' => [
+                   'class' => AccessControl::className(),
+                   'only' => ['logout'],
+                   'rules' => [
+                       [
+                           'actions' => ['logout'],
+                           'allow' => true,
+                           'roles' => ['@'],
+                       ],
+                   ],
+               ],
+               'verbs' => [
+                   'class' => VerbFilter::className(),
+                   'actions' => [
+                       'logout' => ['post'],
+                   ],
+               ],*/
+       /* return [
             'ghost-access'=> [
                 'class' => 'webvimark\modules\UserManagement\components\GhostAccessControl',
             ],
@@ -44,7 +44,7 @@ class SiteController extends Controller
            /* 'ghost-access'=> [
                 'class' => 'webvimark\modules\UserManagement\components\GhostAccessControl',
             ],*/
-        ];
+       /* ];
     }
 
     /**
@@ -78,7 +78,7 @@ class SiteController extends Controller
      *
      * @return Response|string
      */
-    public function actionLogin()
+   /* public function actionLogin()
     {
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
@@ -100,7 +100,7 @@ class SiteController extends Controller
      *
      * @return Response
      */
-    public function actionLogout()
+   /* public function actionLogout()
     {
         Yii::$app->user->logout();
 
@@ -112,7 +112,7 @@ class SiteController extends Controller
      *
      * @return Response|string
      */
-    public function actionContact()
+   /* public function actionContact()
     {
         $model = new ContactForm();
         if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
@@ -130,8 +130,8 @@ class SiteController extends Controller
      *
      * @return string
      */
-    public function actionAbout()
+   /* public function actionAbout()
     {
         return $this->render('about');
-    }
+    }*/
 }

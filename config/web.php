@@ -61,14 +61,17 @@ $config = [
         ],
 
 
-        /*
+
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                ['class' => yii\rest\UrlRule::class, 'controller' => 'api/telemetry'],
             ],
         ],
-        */
+
+
+
     ],
     'modules'=>[
         'user-management' => [
@@ -97,6 +100,14 @@ $config = [
                 };
             },
         ],
+        'gii' => [
+            'class' => 'yii\gii\Module',
+            'allowedIPs' => ['*'] // adjust this to your needs
+        ],
+
+        'api' => [
+            'class' => \app\modules\rest\Api::Class,
+        ],
     ],
     'params' => $params,
 ];
@@ -114,7 +125,7 @@ if (YII_ENV_DEV) {
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
+        'allowedIPs' => ['*'],
     ];
 }
 
