@@ -1,0 +1,9 @@
+<?php
+namespace app\modules\socket\controllers;
+
+class SocketController extends \yii\web\Controller
+{
+    public function actionIndex(){
+        return $this->render('index');
+    }
+}

@@ -12,7 +12,7 @@
         "irc": "irc://irc.freenode.net/yii",
         "source": "https://github.com/yiisoft/yii2"
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "require": {
         "php": ">=7.2.0",
         "yiisoft/yii2": "~2.0.14",
@@ -22,13 +22,15 @@
         "amphp/http-server": "^2.0@dev",
         "amphp/http-server-static-content": "^1.0",
         "amphp/log": "dev-master",
-        "amphp/websocket-server": "dev-master",
+        "amphp/websocket-server": "^2.0",
         "amphp/amp": "^2.0@dev",
         "amphp/http": "^1.6",
         "amphp/http-server-router": "dev-master",
         "amphp/http-server-session": "dev-master",
         "amphp/websocket": "^1.0",
-        "ext-json": "*"
+        "ext-json": "*",
+        "amphp/redis": "^1.0",
+        "laravel/passport": "^11.0@dev"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",

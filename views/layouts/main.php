@@ -3,6 +3,7 @@
 /* @var $this \yii\web\View */
 /* @var $content string */
 
+use app\assets\VueAsset;
 use app\widgets\Alert;
 use webvimark\modules\UserManagement\models\User;
 use yii\helpers\Html;
@@ -12,6 +13,7 @@ use yii\widgets\Breadcrumbs;
 use app\assets\AppAsset;
 
 AppAsset::register($this);
+VueAsset::register($this);
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
@@ -57,6 +59,9 @@ AppAsset::register($this);
                     ['label'=>'Change own password', 'url'=>['/user-management/auth/change-own-password']],
                     ['label'=>'Password recovery', 'url'=>['/user-management/auth/password-recovery']],
                     ['label'=>'E-mail confirmation', 'url'=>['/user-management/auth/confirm-email']],
+                    ['label'=>'restapi', 'url'=>['/api/restpresentation/index']],
+                    ['label'=>'Telemetries', 'url'=>['/ui/webtelemetry/index']],
+                    ['label'=>'web-socket', 'url'=>['/socket/sockettelemetry/index']],
                 ],
             ],
         ],
@@ -69,7 +74,7 @@ AppAsset::register($this);
         <?= Breadcrumbs::widget([
             'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
         ]) ?>
-        <?= Alert::widget() ?>
+
         <?= $content ?>
     </div>
 </div>

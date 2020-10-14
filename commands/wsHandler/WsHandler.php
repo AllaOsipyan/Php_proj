@@ -25,25 +25,21 @@ use function sprintf;
 
 class WsHandler implements ClientHandler
 {
-    private  $clientMessage;
+
     private const ALLOWED_ORIGINS = [
-        'http://0.0.0.0:1337',
-        'http://localhost:1337',
-        'http://192.168.99.100:1337'
+        'http://192.168.99.100:8500'
     ];
     public function handleHandshake(\Amp\Websocket\Server\Gateway $gateway, \Amp\Http\Server\Request $request, \Amp\Http\Server\Response $response): \Amp\Promise
     {
         if (!\in_array($request->getHeader('origin'), self::ALLOWED_ORIGINS, true)) {
             return $gateway->getErrorHandler()->handleError(403);
         }
-
         return new Success($response);
     }
 
     public function handleClient(Gateway $gateway, Client $client, Request $request, Response $response): \Amp\Promise
     {
-        $this->clientMessage = $client->receive();
-        // функция добавления в БД должна быть?
+
         return call(function () use ($gateway, $client): \Generator {
             while ($message = yield $client->receive()) {
                 assert($message instanceof Message);
@@ -56,7 +52,4 @@ class WsHandler implements ClientHandler
         });
     }
 
-    /*public function getMessage(){
-        return $this->clientMessage;
-    }*/
 }

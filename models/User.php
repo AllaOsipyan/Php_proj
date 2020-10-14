@@ -9,8 +9,9 @@ use yii\web\IdentityInterface;
  * This is the model class for table "users".
  *
  * @property int $id
- * @property string|null $login
- * @property string|null $password
+ * @property string|null $username
+ * @property string|null $password_hash
+ * @property string|null $confirmation_token
  */
 class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
@@ -19,7 +20,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function tableName()
     {
-        return 'users';
+        return 'user';
     }
 
     /**
@@ -29,7 +30,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return [
             [['id'], 'integer'],
-            [['login', 'password'], 'string', 'max' => 255],
+            [['username','password_hash', 'confirmation_token'], 'string', 'max' => 255],
         ];
     }
 
@@ -40,8 +41,9 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return [
             'id' => 'ID',
-            'login' => 'Login',
-            'password' => 'Password',
+            'username' => 'username',
+            'password_hash' => 'password_hash',
+            'confirmation_token' => 'confirmation_token',
         ];
     }
 
@@ -54,7 +56,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function findIdentity($id)
     {
-        return self::findOne(['users.id' => $id]);
+        return self::findOne(['user.id' => $id]);
     }
 
 
@@ -66,7 +68,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function findByUsername($username)
     {
-        return self::findOne(['users.login' => $username]);
+        return self::findOne(['user.username' => $username]);
     }
 
     /**
@@ -80,7 +82,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        throw new \RuntimeException('Not implement');
+        return static::findOne(['user.confirmation_token' => $token]);
     }
 
     /**
@@ -135,6 +137,6 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public function validatePassword($password)
     {
-        return $this->password === $password;
+        return $this->password_hash === $password;
     }
 }
