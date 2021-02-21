@@ -3,15 +3,18 @@
 namespace app\models;
 
 use Yii;
+use yii\base\Exception;
 use yii\web\IdentityInterface;
 
 /**
  * This is the model class for table "users".
  *
  * @property int $id
- * @property string|null $username
- * @property string|null $password_hash
- * @property string|null $confirmation_token
+ * @property string|null $login
+ * @property string|null $password
+ * @property string|null $token
+ * @property string|null $role
+ * @property string|null $status
  */
 class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
@@ -20,7 +23,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function tableName()
     {
-        return 'user';
+        return 'users';
     }
 
     /**
@@ -30,7 +33,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return [
             [['id'], 'integer'],
-            [['username','password_hash', 'confirmation_token'], 'string', 'max' => 255],
+            [['login','password', 'token', 'role', 'status'], 'string', 'max' => 255],
         ];
     }
 
@@ -41,9 +44,11 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return [
             'id' => 'ID',
-            'username' => 'username',
-            'password_hash' => 'password_hash',
-            'confirmation_token' => 'confirmation_token',
+            'login' => 'Login',
+            'password' => 'Password',
+            'token' => 'Token',
+            'role' => 'Role',
+            'status' =>'Status'
         ];
     }
 
@@ -56,7 +61,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function findIdentity($id)
     {
-        return self::findOne(['user.id' => $id]);
+        return self::findOne(['users.id' => $id]);
     }
 
 
@@ -68,7 +73,7 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function findByUsername($username)
     {
-        return self::findOne(['user.username' => $username]);
+        return self::findOne(['users.login' => $username]);
     }
 
     /**
@@ -82,9 +87,31 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        return static::findOne(['user.confirmation_token' => $token]);
+        return static::findOne(['users.token' => $token]);
+    }
+    public function setStatus($user, $role, $status){
+        $auth = Yii::$app->authManager;
+        Yii::$app->authManager->revokeAll( $user->getId() );
+        $authorRole = $auth->getRole($role);
+        $auth->assign($authorRole, $user->getId());
+        $this->status = $status;
+        $this->save();
+    }
+    public function generateAccessToken(){
+        try {
+            $this->token = Yii::$app->security->generateRandomString();
+        } catch (Exception $e) {
+           throwException($e);
+        }
     }
 
+
+    public function setLogin($username){
+        $this->login = $username;
+    }
+    public function setPassword($password){
+        $this->password = $password;
+    }
     /**
      * Returns an ID that can uniquely identify a user identity.
      * @return string|int an ID that uniquely identifies a user identity.
@@ -93,6 +120,10 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     {
         return $this->id;
     }
+
+    /*function generateAuthKey(){
+        return
+    }*/
 
     /**
      * Returns a key that can be used to check the validity of a given identity ID.
@@ -137,6 +168,6 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public function validatePassword($password)
     {
-        return $this->password_hash === $password;
+        return $this->password === $password;
     }
 }

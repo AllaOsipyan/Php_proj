@@ -40,30 +40,38 @@ VueAsset::register($this);
             'class' => 'navbar-inverse navbar-fixed-top',
         ],
     ]);
+    $array = Yii::$app->authManager->getRolesByUser(Yii::$app->user->getId());
+    $userRole=empty($array) ? null: reset($array);
+
     echo Nav::widget([
         'encodeLabels'=>false,
         'activateParents'=>true,
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
             [
-                'label' => 'Backend routes',
-                'items'=>UserManagementModule::menuItems()
-            ],
-
-            [
-                'label' => 'Frontend routes',
+                'label' => 'Menu',
                 'items'=>[
-                    ['label'=>'Login', 'url'=>['/user-management/auth/login'], 'visible'=>Yii::$app->user->isGuest],
-                    ['label'=>'Logout', 'url'=>['/user-management/auth/logout'], 'visible'=>!Yii::$app->user->isGuest],
-                    ['label'=>'Registration', 'url'=>['/user-management/auth/registration'], 'visible'=>Yii::$app->user->isGuest],
-                    ['label'=>'Change own password', 'url'=>['/user-management/auth/change-own-password']],
-                    ['label'=>'Password recovery', 'url'=>['/user-management/auth/password-recovery']],
-                    ['label'=>'E-mail confirmation', 'url'=>['/user-management/auth/confirm-email']],
-                    ['label'=>'restapi', 'url'=>['/api/restpresentation/index']],
-                    ['label'=>'Telemetries', 'url'=>['/ui/webtelemetry/index']],
-                    ['label'=>'web-socket', 'url'=>['/socket/sockettelemetry/index']],
+                    ['label'=>'Rest-api', 'url'=>['/api/main/index']],
+                    ['label'=>'Browsing telemetries', 'url'=>['/ui/webtelemetry/index'],
+                        'visible' => $userRole!==null],
+                    ['label'=>'Web-socket', 'url'=>['/socket/socket/index'],
+                        'visible' => $userRole!==null],
+                    ['label'=>'User management', 'url'=>['/user_management/user/index'],
+                        'visible' => $userRole!==null && $userRole->name=='admin'],
                 ],
             ],
+            Yii::$app->user->isGuest ? (
+                ['label' => 'Login', 'url' => ['/site/login']]
+            ) : (
+                '<li>'
+                . Html::beginForm(['/site/logout'], 'post')
+                . Html::submitButton(
+                    'Logout (' . Yii::$app->user->identity->login . ')',
+                    ['class' => 'btn btn-link logout']
+                )
+                . Html::endForm()
+                . '</li>'
+            )
         ],
     ]);
     NavBar::end();
@@ -78,14 +86,6 @@ VueAsset::register($this);
         <?= $content ?>
     </div>
 </div>
-
-<footer class="footer">
-    <div class="container">
-        <p class="pull-left">&copy; My Company <?= date('Y') ?></p>
-
-        <p class="pull-right"><?= Yii::powered() ?></p>
-    </div>
-</footer>
 
 <?php $this->endBody() ?>
 </body>

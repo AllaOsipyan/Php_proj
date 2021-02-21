@@ -33,44 +33,41 @@ class TelemetryController extends  Controller
     }
     // public function beforeAction() { сгенерировать accessToken}
     public function actionIndex($name1){
+            $name = \Yii::$app->request->getBodyParam('name');
+            $query = Telemetries::find();
 
-        $name = \Yii::$app->request->getBodyParam('name');
-        $query = Telemetries::find();
+            if ($name1 !== ""){
+                $query = Telemetries::find()->andWhere(['name' => $name1]);
+            }
+            //$query->addSelect('JSON_QUERY(value)');
+            $query->asArray();
+            $dataProvider = new ActiveDataProvider([
+                'query' => $query, //добавить фильтры
 
-        if ($name1 !== ""){
-            $query = Telemetries::find()->andWhere(['name' => $name1]);
-        }
-        //$query->addSelect('JSON_QUERY(value)');
-        $query->asArray();
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query, //добавить фильтры
-
-        ]);
-        $array = $dataProvider->getModels();
-        for ($i=0;$i<count($array);$i++){
-              $array[$i]['value'] = json_decode($array[$i]['value']);
-        }
-        return  $array; //unserialize($array[0]['value']);
-
+            ]);
+            $array = $dataProvider->getModels();
+            for ($i=0;$i<count($array);$i++){
+                  $array[$i]['value'] = json_decode($array[$i]['value']);
+            }
+            return  $array;
     }
 
     public function actionCreate()
     {
-        $telemetry = new Telemetries();
-        $data = \Yii::$app->request->getBodyParams();
-        if (array_key_exists('name', $data) && array_key_exists('value', $data)){
-            $telemetry->name = $data['name'];
-            $telemetry->value = json_encode($data['value']);
-        }
-        else {
-            $telemetry->name = array_keys($data)[0];
-            $telemetry->value = json_encode($data[$telemetry->name]);
-        }
-        $telemetry->time = date("Y-m-d H:i:s");
+            $telemetry = new Telemetries();
+            $data = \Yii::$app->request->getBodyParams();
+            if (array_key_exists('name', $data) && array_key_exists('value', $data)) {
+                $telemetry->name = $data['name'];
+                $telemetry->value = json_encode($data['value']);
+            } else {
+                $telemetry->name = array_keys($data)[0];
+                $telemetry->value = json_encode($data[$telemetry->name]);
+            }
+            $telemetry->time = date("Y-m-d H:i:s");
 
-        if ( $telemetry->validate()){
-            $telemetry->save();
-        }
-        return $telemetry;
+            if ($telemetry->validate()) {
+                $telemetry->save();
+            }
+            return $telemetry;
     }
 }

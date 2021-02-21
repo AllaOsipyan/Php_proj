@@ -16,6 +16,9 @@ class m200803_134756_adduserTable extends Migration
             'id' => 'pk',
             'login' => 'string NOT NULL',
             'password' => 'string',
+            'token' => 'string',
+            'role' => 'string',
+            'status' => 'string'
         ));
 
     }

@@ -16,9 +16,9 @@ class SiteController extends Controller
     /**
      * {@inheritdoc}
      */
-    /*   public function behaviors()
+       public function behaviors()
        {
-           /*return [
+           return [
                'access' => [
                    'class' => AccessControl::className(),
                    'only' => ['logout'],
@@ -35,16 +35,12 @@ class SiteController extends Controller
                    'actions' => [
                        'logout' => ['post'],
                    ],
-               ],*/
-       /* return [
-            'ghost-access'=> [
-                'class' => 'webvimark\modules\UserManagement\components\GhostAccessControl',
-            ],
+               ]
 
            /* 'ghost-access'=> [
                 'class' => 'webvimark\modules\UserManagement\components\GhostAccessControl',
             ],*/
-       /* ];
+        ];
     }
 
     /**
@@ -78,7 +74,7 @@ class SiteController extends Controller
      *
      * @return Response|string
      */
-   /* public function actionLogin()
+    public function actionLogin()
     {
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
@@ -100,14 +96,14 @@ class SiteController extends Controller
      *
      * @return Response
      */
-   /* public function actionLogout()
+   public function actionLogout()
     {
         Yii::$app->user->logout();
 
         return $this->goHome();
     }
 
-    /**
+    /*/**
      * Displays contact page.
      *
      * @return Response|string

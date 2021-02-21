@@ -2,7 +2,10 @@
 
 use yii\grid\GridView;
 /* @var $dataProvider yii\data\ActiveDataProvider */
-    echo GridView::widget([
-        'dataProvider' => $dataProvider,
-    ]);
+    if($dataProvider != null):
+        echo GridView::widget([
+            'dataProvider' => $dataProvider,
+        ]);
+    else: echo 'Forbidden';
+    endif;
     ?>

@@ -73,10 +73,13 @@ export default {
       }
   },
   methods: {
+    a: function (event){
+      console.log(1)
+    },
     async get(){
 
       axios
-          .get('http://192.168.99.100:8500/api/telemetries',
+          .get('http://localhost:8500/api/telemetries',
                 {
                     params: {
                            name1: this.itemName
@@ -94,7 +97,7 @@ export default {
       this.name = this.telemetry.split('=')[0]
       this.value = this.telemetry.split('=')[1]
       axios
-          .post('http://192.168.99.100:8500/api/telemetries', {name: this.name, value:this.value},
+          .post('http://localhost:8500/api/telemetries', {name: this.name, value:this.value},
               {headers: {'Authorization': 'Bearer '+this.token}
           })
           .then(response => (this.savedItems = response.data))

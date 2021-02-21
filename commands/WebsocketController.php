@@ -47,7 +47,7 @@ class WebsocketController extends Controller
             ];
 
             $router = new Router;
-            $router->addRoute('GET', '/broadcast', $this->websocket);
+            $router->addRoute('GET', '/multicast', $this->websocket);
             $router->setFallback(new DocumentRoot(__DIR__ . '/../web/public'));
 
             $logHandler = new StreamHandler(getStdout());

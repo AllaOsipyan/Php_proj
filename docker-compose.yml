@@ -5,7 +5,7 @@ services:
     volumes:
       - ~/.composer:/root/.composer
       - ~/.composer-docker/cache:/root/.composer/cache:delegated
-      - ./docker/conf/php-fpm.Dd:/usr/local/etc/php-fpm.d:delegated
+      - ./docker/conf/php-fpm.d:/usr/local/etc/php-fpm.d:delegated
       - ./:/app:delegated
       - ./:/var/www
       - "phpsocket:/var/run"
@@ -45,12 +45,12 @@ services:
       MYSQL_ROOT_PASSWORD: rootpwd
   npm:
     build:
-      dockerfile: ./docker/npm/Dockerfile
+      dockerfile: Dockerfile
       context: ./.
     volumes:
     - ./:/app:delegated
     env_file:
-      - config/.env
+      - .env
 
 volumes:
   phpsocket:

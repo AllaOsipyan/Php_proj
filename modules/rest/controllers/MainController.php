@@ -6,7 +6,7 @@ namespace app\modules\rest\controllers;
 
 use yii\web\Controller;
 
-class RestpresentationController extends Controller
+class MainController extends Controller
 {
     public function actionIndex()
     {

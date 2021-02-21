@@ -24,18 +24,18 @@ $config = [
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
-        'user' => [
+        /*'user' => [
             'class' => 'webvimark\modules\UserManagement\components\UserConfig',
 
             // Comment this if you don't want to record user logins
             'on afterLogin' => function($event) {
                 \webvimark\modules\UserManagement\models\UserVisitLog::newVisitor($event->identity->id);
             }
-        ],
-      /*  'user' => [
+        ],*/
+        'user' => [
             'identityClass' => 'app\models\User',
             'enableAutoLogin' => true,
-        ],*/
+        ],
         'errorHandler' => [
             'errorAction' => 'site/error',
         ],
@@ -76,14 +76,8 @@ $config = [
 
     ],
     'modules'=>[
-        'user-management' => [
-            'class' => 'webvimark\modules\UserManagement\UserManagementModule',
-            'on beforeAction'=>function(yii\base\ActionEvent $event) {
-                if ( $event->action->uniqueId == 'user-management/auth/login' )
-                {
-                    $event->action->controller->layout = 'loginLayout.php';
-                };
-            },
+        'user_management' => [
+            'class' => \app\modules\user_management\Management::Class,
         ],
         'gii' => [
             'class' => 'yii\gii\Module',
