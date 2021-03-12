@@ -1,11 +1,28 @@
 <template>
   <div class="socket">
-    <label>
-      <input placeholder="item name" v-model="itemName" class="form-control">
-    </label>
-    <button v-on:click="sendToSocket">Send</button>
-    <div>You recently sent:</div>
-    <ul id="messages"></ul>
+    <div class="error" >{{this.error}}</div>
+    <div class="form">
+      <div class="add-telemetry">
+        <h2> Send telemetry</h2>
+      <label>
+        <div> Name</div>
+        <input v-model="telemetryName" class="form-control">
+        <div> Value</div>
+        <input v-model="telemetryValue" class="form-control">
+      </label>
+      <button v-on:click="createTelemetry()">Send</button>
+      </div>
+      <div class="find-telemetry">
+        <h2> Find telemetry</h2>
+        <label>
+          <div> Name</div>
+          <input v-model="itemName" class="form-control">
+        </label>
+        <button v-on:click="findTelemetry()">Send</button>
+      </div>
+    </div>
+    <div>Recently reviewed:</div>
+    <ul id="createdMessages"></ul>
   </div>
 </template>
 
@@ -15,78 +32,60 @@ export default {
   data: function () {
 
     return {
+      telemetryName: '',
+      telemetryValue: '',
       itemName: '',
-      ws: ''
+      ws: '',
+      error:''
     }
   },
   created() {
     this.handshack()
   },
   methods: {
-    handshack(){
+    handshack() {
       this.ws = new WebSocket("ws://localhost:1337/multicast");
-      this.ws.addEventListener("message", function(e) {
-        let list = document.getElementById("messages");
+      this.ws.addEventListener("message", function (e) {
+
+        let list = document.getElementById("createdMessages");
         let listItem = document.createElement('li');
         listItem.className = 'delayed';
         listItem.textContent = e.data;
-        console.log(e.data);
         list.append(listItem);
-
         while (list.children.length > 5) {
           list.removeChild(list.firstChild);
         }
+
       });
-
     },
-    sendToSocket() {
-      try {
-          console.log(this.itemName);
-          this.ws.send(this.itemName);
+    findTelemetry() {
+      this.error='';
+      if(this.itemName===''){
+        this.error = "Field Name is required"
+      }
+      else{
+        try {
+          this.ws.send("GET^^" + this.itemName);
 
-      } catch (err) {
-        console.log(err);
+        } catch (err) {
+          console.log(err);
+        }
       }
     },
-
-
-
-
-
-
-
-    example(){
-      console.log("I'm fine");
-
-      var ws = new WebSocket("ws://localhost:1337/broadcast");
-
-      // append all received messages to #messages
-      ws.addEventListener("message", function(e) {
-        console.log(e.data);
-
-        var listItem = document.createElement('li');
-        listItem.className = 'delayed';
-        listItem.textContent = e.data;
-
-        list.append(listItem);
-
-        while (list.children.length > 5) {
-          list.removeChild(list.firstChild);
+    createTelemetry() {
+      this.error='';
+      if(this.telemetryName==='' || this.telemetryValue==='') {
+        this.error = "Field Name and Value is required"
+      }
+      else{
+        try {
+          this.ws.send("POST^^" + this.telemetryName + "@@@" + this.telemetryValue);
+        } catch (err) {
+          this.error = "Access denied. Check your status."
         }
-      });
-
-      input.addEventListener('keyup', function (e) {
-        if (e.keyCode === 13) {
-          e.preventDefault();
-
-          ws.send(e.target.value);
-          e.target.value = "";
-          e.target.focus();
-        }
-      });
-    }
-  },
-
+      }
+    },
+  }
 
 }
 </script>
@@ -108,6 +107,9 @@ input[type=text]:focus {
   border-color: #08e;
   outline: 0;
 }
+.error{
+  color: red;
+}
 
 #messages { flex: 1 1 auto; list-style: none; }
 #messages > li { margin: 0 20px; padding: 20px; border-bottom: 1px solid #ccc; }
@@ -120,7 +122,9 @@ input[type=text]:focus {
   width: 100%;
   margin: 0 auto;
 }
-
+.form{
+  display: flex;
+}
 #messages li {
   border-bottom: 1px solid #eee;
   margin-bottom: 5px;

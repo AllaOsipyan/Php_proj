@@ -51,14 +51,18 @@ VueAsset::register($this);
             [
                 'label' => 'Menu',
                 'items'=>[
-                    ['label'=>'Rest-api', 'url'=>['/api/main/index']],
+                    ['label'=>'Profile', 'url'=>['/user_management/user/profile'],
+                        ],
+                    ['label'=>'Rest-api', 'url'=>['/api/main/index'],
+                        'visible' => $userRole!==null && $userRole->name!=='bannedUser'],
+
                     ['label'=>'Browsing telemetries', 'url'=>['/ui/webtelemetry/index'],
-                        'visible' => $userRole!==null],
+                        'visible' => $userRole!==null && $userRole->name!=='bannedUser'],
                     ['label'=>'Web-socket', 'url'=>['/socket/socket/index'],
-                        'visible' => $userRole!==null],
-                    ['label'=>'User management', 'url'=>['/user_management/user/index'],
-                        'visible' => $userRole!==null && $userRole->name=='admin'],
+                        'visible' => $userRole!==null && $userRole->name!=='bannedUser'],
+
                 ],
+                    'visible' => $userRole!==null
             ],
             Yii::$app->user->isGuest ? (
                 ['label' => 'Login', 'url' => ['/site/login']]

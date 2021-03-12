@@ -1,6 +1,5 @@
 <template>
   <div class="ap">
-    <h2> Send telemetry</h2>
     <socket></socket>
   </div>
 </template>

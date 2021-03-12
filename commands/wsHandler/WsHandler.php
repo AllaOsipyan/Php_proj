@@ -42,28 +42,48 @@ class WsHandler implements ClientHandler
 
     public function handleClient(Gateway $gateway, Client $client, Request $request, Response $response): \Amp\Promise
     {
+        return call(function () use ($gateway, $client, $request): \Generator {
+            while ($messageWithType = yield $client->receive()) {
 
-        return call(function () use ($gateway, $client): \Generator {
-            while ($message = yield $client->receive()) {
+                    $splitMessage = explode("^^", yield $messageWithType->buffer());
+                    $requestType = $splitMessage[0];
+                    $message = $splitMessage[1];
+                    if (strcasecmp($requestType, "POST") == 0) {
 
+                        $this->createTelemetry($message);
+                        assert($messageWithType instanceof Message);
+                        $gateway->multicast(sprintf(
+                            '%s',
+                            str_replace("@@@", ": ", $message)//сообщение
+                        ), $array = [
+                            $client->getId()
+                        ]);
 
-                $this->createTelemetry(yield $message->buffer());
-                assert($message instanceof Message);
-                $gateway->multicast(sprintf(
-                    '%s',
-                    yield $message->buffer() //сообщение
-                ),$array = [
-                    $client->getId()
-                ]);
-            }
+                    } else {
+                        if ($message !== "") {
+                            $telemetries = Telemetries::find()->andWhere(['name' => $message])->all();
+                            assert($messageWithType instanceof Message);
+                            $gateway->multicast(sprintf(
+                                '%s',
+                                $telemetries[0]->value //сообщение
+                            ), $array = [
+                                $client->getId()
+                            ]);
+                        }
+                    }
+                }
+
+            //}
         });
     }
     public function createTelemetry( $message)
     {
+
         $telemetry = new Telemetries();
-            $splitData = explode("=", $message);
-            $telemetry->name = $splitData[0];
-            $telemetry->value = json_encode($splitData[1]);
+        $splitData = explode("@@@", $message);
+        $telemetry->name = $splitData[0];
+        $telemetry->value = json_encode($splitData[1]);
+
 
         $telemetry->time = date("Y-m-d H:i:s");
 

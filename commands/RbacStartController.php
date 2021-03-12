@@ -46,7 +46,6 @@ class RbacStartController extends Controller
 
         $bannedUser = $auth->createRole('bannedUser');
         $auth->add($bannedUser);
-        $auth->addChild($bannedUser, $browseTelemetry);
     }
 
 }

@@ -1,41 +1,33 @@
 <template>
 <div>
   <div>
+    <div class="error">{{this.error}}</div>
     <h5> Access Token</h5>
-    <input class="form-control" v-model="token">
+    <label>
+      <input class="form-control" v-model="token">
+    </label>
   </div>
   <br>
   <div >
     <h2> Send telemetry</h2>
-    <input class="form-control" placeholder="for example: temp=12" v-model="telemetry">
+    <label>
+      <div> Name</div>
+        <input class="form-control" v-model="telemetryName">
+      <div> Value </div>
+        <input class="form-control" v-model="telemetryValue">
+    </label>
     <button v-on:click="send">send</button>
-    <table class="table">
-      <thead>
-      <tr>
-        <th scope="col">id</th>
-        <th scope="col">name</th>
-        <th scope="col">values</th>
-        <th scope="col">create time</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="(item) in this.savedItems">
-        <td>{{item.id}}</td>
-        <td>{{item.name}}</td>
-        <td>{{item.value}}</td>
-        <td>{{item.time}}</td>
-      </tr>
-      </tbody>
-    </table>
+    <div v-if="telemetryId!==''">Telemetry was added with id: {{this.telemetryId}}</div>
+    <div class="error" v-if="this.accessError!==''">{{this.accessError}}</div>
   </div>
   <div class="api-get">
     <h2> Find telemetry</h2>
-    <input placeholder="item name" v-model="itemName" class="form-control">
+    <label>
+      <input placeholder="item name" v-model="itemName" class="form-control">
+    </label>
     <button v-on:click="get">Find</button>
 
-
-
-    <table class="table">
+    <table v-if="selectedTelemetries.length!==0" class="table">
       <thead>
       <tr>
         <th scope="col">id</th>
@@ -45,11 +37,11 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="(article) in allArticles">
-        <td>{{article.id}}</td>
-        <td>{{article.name}}</td>
-        <td>{{article.value}}</td>
-        <td>{{article.time}}</td>
+      <tr v-for="(telemetry) in selectedTelemetries">
+        <td>{{telemetry.id}}</td>
+        <td>{{telemetry.name}}</td>
+        <td>{{telemetry.value}}</td>
+        <td>{{telemetry.time}}</td>
       </tr>
       </tbody>
     </table>
@@ -66,50 +58,80 @@ export default {
 
       return {
         token: '',
-        telemetry: '',
+        telemetryName: '',
+        telemetryValue:'',
         itemName: '',
-        savedItems:[],
-        allArticles: []
+        telemetryId: '',
+        selectedTelemetries: [],
+        error:'',
+        accessError:'',
+
       }
   },
   methods: {
-    a: function (event){
-      console.log(1)
-    },
-    async get(){
 
-      axios
-          .get('http://localhost:8500/api/telemetries',
+    async get(){
+      this.error = '';
+      this.selectedTelemetries = [];
+      if(this.token===''){
+        this.error = "Token is required";
+      }
+      else if(this.itemName===''){
+        this.error = "Field Name is required";
+      }
+      else if(this.itemName!=='') {
+
+        axios
+            .get('http://localhost:8500/api/telemetries',
                 {
-                    params: {
-                           name1: this.itemName
-                    },
-                    headers: {
-                      'Authorization': 'Bearer '+this.token,
-                    }
-                } )
-          .then(response => {
-            this.allArticles = response.data;
-          })
-          .catch(error => console.log(error));
+                  params: {
+                    name1: this.itemName
+                  },
+                  headers: {
+                    'Authorization': 'Bearer ' + this.token,
+                  }
+                })
+            .then(response => {
+              this.selectedTelemetries = response.data;
+              if(this.selectedTelemetries.length===0)
+                this.error = "Telemetries are not found"
+
+            })
+            .catch(error => console.log(error));
+      }
     },
     send: function (event){
-      this.name = this.telemetry.split('=')[0]
-      this.value = this.telemetry.split('=')[1]
-      axios
-          .post('http://localhost:8500/api/telemetries', {name: this.name, value:this.value},
-              {headers: {'Authorization': 'Bearer '+this.token}
-          })
-          .then(response => (this.savedItems = response.data))
-          .catch(error => console.log(error));
+      this.error = '';
+      if(this.token===''){
+        this.error = "Field is required";
+      }
+      else if(this.telemetryName===''|| this.telemetryValue===''){
+        this.error = "Field Name and Value is required";
+      }
+      else if(this.telemetryName !== '' && this.telemetryValue !== '') {
+        axios
+            .post('http://localhost:8500/api/telemetries', {name: this.telemetryName, value: this.telemetryValue},
+                {
+                  headers: {'Authorization': 'Bearer ' + this.token}
+                })
+            .then(response => {
 
-    }
+              if(response.data!==null)
+                this.telemetryId = response.data.id;
 
+            })
+            .catch(error =>{
+              this.error = "Access is denied. Check your status and token."
+        });
+      }
+    },
   }
-
 }
 </script>
 
 <style scoped>
+.error{
+  color: red;
 
+}
 </style>

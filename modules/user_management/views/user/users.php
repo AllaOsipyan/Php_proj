@@ -6,7 +6,7 @@ use yii\widgets\ActiveForm;
 
 /* @var $dataProvider yii\data\ActiveDataProvider */
 /* @var $model app\modules\user_management\models\UserForm */
-$form = ActiveForm::begin(['action'=>['allusers','id'=>$model->status], 'method'=>"post"]);
+$form = ActiveForm::begin(['action'=>['showusers','id'=>$model->status], 'method'=>"post"]);
     echo GridView::widget([
         'dataProvider' => $dataProvider,
         'columns' => [

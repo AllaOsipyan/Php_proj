@@ -1981,7 +1981,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: "SocketVue",
@@ -2062,30 +2061,22 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
-//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: "RestGet",
   data: function data() {
     return {
       token: '',
-      telemetry: '',
+      telemetryName: '',
+      telemetryValue: '',
       itemName: '',
-      savedItems: [],
-      allArticles: []
+      telemetryId: '',
+      selectedTelemetries: [],
+      error: '',
+      accessError: ''
     };
   },
   methods: {
-    a: function a(event) {
-      console.log(1);
-    },
     get: function get() {
       var _this = this;
 
@@ -2094,20 +2085,30 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                axios__WEBPACK_IMPORTED_MODULE_1___default.a.get('http://localhost:8500/api/telemetries', {
-                  params: {
-                    name1: _this.itemName
-                  },
-                  headers: {
-                    'Authorization': 'Bearer ' + _this.token
-                  }
-                }).then(function (response) {
-                  _this.allArticles = response.data;
-                })["catch"](function (error) {
-                  return console.log(error);
-                });
+                _this.error = '';
+                _this.selectedTelemetries = [];
 
-              case 1:
+                if (_this.token === '') {
+                  _this.error = "Token is required";
+                } else if (_this.itemName === '') {
+                  _this.error = "Field Name is required";
+                } else if (_this.itemName !== '') {
+                  axios__WEBPACK_IMPORTED_MODULE_1___default.a.get('http://localhost:8500/api/telemetries', {
+                    params: {
+                      name1: _this.itemName
+                    },
+                    headers: {
+                      'Authorization': 'Bearer ' + _this.token
+                    }
+                  }).then(function (response) {
+                    _this.selectedTelemetries = response.data;
+                    if (_this.selectedTelemetries.length === 0) _this.error = "Telemetries are not found";
+                  })["catch"](function (error) {
+                    return console.log(error);
+                  });
+                }
+
+              case 3:
               case "end":
                 return _context.stop();
             }
@@ -2118,20 +2119,26 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     send: function send(event) {
       var _this2 = this;
 
-      this.name = this.telemetry.split('=')[0];
-      this.value = this.telemetry.split('=')[1];
-      axios__WEBPACK_IMPORTED_MODULE_1___default.a.post('http://localhost:8500/api/telemetries', {
-        name: this.name,
-        value: this.value
-      }, {
-        headers: {
-          'Authorization': 'Bearer ' + this.token
-        }
-      }).then(function (response) {
-        return _this2.savedItems = response.data;
-      })["catch"](function (error) {
-        return console.log(error);
-      });
+      this.error = '';
+
+      if (this.token === '') {
+        this.error = "Field is required";
+      } else if (this.telemetryName === '' || this.telemetryValue === '') {
+        this.error = "Field Name and Value is required";
+      } else if (this.telemetryName !== '' && this.telemetryValue !== '') {
+        axios__WEBPACK_IMPORTED_MODULE_1___default.a.post('http://localhost:8500/api/telemetries', {
+          name: this.telemetryName,
+          value: this.telemetryValue
+        }, {
+          headers: {
+            'Authorization': 'Bearer ' + this.token
+          }
+        }).then(function (response) {
+          if (response.data !== null) _this2.telemetryId = response.data.id;
+        })["catch"](function (error) {
+          _this2.error = "Access is denied. Check your status and token.";
+        });
+      }
     }
   }
 });
@@ -2158,12 +2165,32 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: "Socket.vue",
   data: function data() {
     return {
+      telemetryName: '',
+      telemetryValue: '',
       itemName: '',
-      ws: ''
+      ws: '',
+      error: ''
     };
   },
   created: function created() {
@@ -2173,11 +2200,10 @@ __webpack_require__.r(__webpack_exports__);
     handshack: function handshack() {
       this.ws = new WebSocket("ws://localhost:1337/multicast");
       this.ws.addEventListener("message", function (e) {
-        var list = document.getElementById("messages");
+        var list = document.getElementById("createdMessages");
         var listItem = document.createElement('li');
         listItem.className = 'delayed';
         listItem.textContent = e.data;
-        console.log(e.data);
         list.append(listItem);
 
         while (list.children.length > 5) {
@@ -2185,40 +2211,53 @@ __webpack_require__.r(__webpack_exports__);
         }
       });
     },
-    sendToSocket: function sendToSocket() {
-      try {
-        console.log(this.itemName);
-        this.ws.send(this.itemName);
-      } catch (err) {
-        console.log(err);
+    findTelemetry: function findTelemetry() {
+      this.error = '';
+
+      if (this.itemName === '') {
+        this.error = "Field Name is required";
+      } else {
+        try {
+          this.ws.send("GET^^" + this.itemName);
+        } catch (err) {
+          console.log(err);
+        }
       }
     },
-    example: function example() {
-      console.log("I'm fine");
-      var ws = new WebSocket("ws://localhost:1337/broadcast"); // append all received messages to #messages
+    createTelemetry: function createTelemetry() {
+      this.error = '';
 
-      ws.addEventListener("message", function (e) {
-        console.log(e.data);
-        var listItem = document.createElement('li');
-        listItem.className = 'delayed';
-        listItem.textContent = e.data;
-        list.append(listItem);
-
-        while (list.children.length > 5) {
-          list.removeChild(list.firstChild);
+      if (this.telemetryName === '' || this.telemetryValue === '') {
+        this.error = "Field Name and Value is required";
+      } else {
+        try {
+          this.ws.send("POST^^" + this.telemetryName + "@@@" + this.telemetryValue);
+        } catch (err) {
+          this.error = "Access denied. Check your status.";
         }
-      });
-      input.addEventListener('keyup', function (e) {
-        if (e.keyCode === 13) {
-          e.preventDefault();
-          ws.send(e.target.value);
-          e.target.value = "";
-          e.target.focus();
-        }
-      });
+      }
     }
   }
 });
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./vue/components/Rest.vue?vue&type=style&index=0&id=4d51e4a6&scoped=true&lang=css&":
+/*!*************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/css-loader??ref--5-1!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src??ref--5-2!./node_modules/vue-loader/lib??vue-loader-options!./vue/components/Rest.vue?vue&type=style&index=0&id=4d51e4a6&scoped=true&lang=css& ***!
+  \*************************************************************************************************************************************************************************************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(/*! ../../node_modules/css-loader/lib/css-base.js */ "./node_modules/css-loader/lib/css-base.js")(false);
+// imports
+
+
+// module
+exports.push([module.i, "\n.error[data-v-4d51e4a6]{\r\n  color: red;\n}\r\n", ""]);
+
+// exports
+
 
 /***/ }),
 
@@ -2234,7 +2273,7 @@ exports = module.exports = __webpack_require__(/*! ../../node_modules/css-loader
 
 
 // module
-exports.push([module.i, "\n* { padding: 0; margin: 0; box-sizing: border-box;\n}\nbody { font-size: 14px; font-family: sans-serif; display: flex; height: 100vh; flex-direction: column; box-sizing: border-box; padding: 50px;\n}\ninput[type=text] {\r\n  line-height: 34px;\r\n  height: 34px;\r\n  border: 2px solid #ccc;\r\n  background: white;\r\n  border-radius: 4px;\r\n  padding: 0 10px;\n}\ninput[type=text]:focus {\r\n  border-color: #08e;\r\n  outline: 0;\n}\n#messages { flex: 1 1 auto; list-style: none;\n}\n#messages > li { margin: 0 20px; padding: 20px; border-bottom: 1px solid #ccc;\n}\n#messages > li:last-child { border-bottom: 0;\n}\n#messages {\r\n  list-style-type: none;\r\n  display: block;\r\n  padding-left: 0;\r\n  width: 100%;\r\n  margin: 0 auto;\n}\n#messages li {\r\n  border-bottom: 1px solid #eee;\r\n  margin-bottom: 5px;\r\n  padding: 5px 0 5px 0;\n}\n.delayed {\r\n  -webkit-animation: fadein 1000ms;\r\n  -moz-animation: fadein 1000ms;\r\n  -ms-animation: fadein 1000ms;\r\n  -o-animation: fadein 1000ms;\r\n  animation: fadein 1000ms;\n}\r\n\r\n/* http://stackoverflow.com/a/11681331/2373138 */\n@keyframes fadein {\nfrom { opacity: 0;\n}\nto   { opacity: 1;\n}\n}\r\n\r\n/* Firefox < 16 */\n@-moz-keyframes fadein {\nfrom { opacity: 0;\n}\nto   { opacity: 1;\n}\n}\n@-webkit-keyframes fadein {\nfrom { opacity: 0;\n}\nto   { opacity: 1;\n}\n}\n@-ms-keyframes fadein {\nfrom { opacity: 0;\n}\nto   { opacity: 1;\n}\n}\n@-o-keyframes fadein {\nfrom { opacity: 0;\n}\nto   { opacity: 1;\n}\n}\r\n", ""]);
+exports.push([module.i, "\n* { padding: 0; margin: 0; box-sizing: border-box;\n}\nbody { font-size: 14px; font-family: sans-serif; display: flex; height: 100vh; flex-direction: column; box-sizing: border-box; padding: 50px;\n}\ninput[type=text] {\r\n  line-height: 34px;\r\n  height: 34px;\r\n  border: 2px solid #ccc;\r\n  background: white;\r\n  border-radius: 4px;\r\n  padding: 0 10px;\n}\ninput[type=text]:focus {\r\n  border-color: #08e;\r\n  outline: 0;\n}\n.error{\r\n  color: red;\n}\n#messages { flex: 1 1 auto; list-style: none;\n}\n#messages > li { margin: 0 20px; padding: 20px; border-bottom: 1px solid #ccc;\n}\n#messages > li:last-child { border-bottom: 0;\n}\n#messages {\r\n  list-style-type: none;\r\n  display: block;\r\n  padding-left: 0;\r\n  width: 100%;\r\n  margin: 0 auto;\n}\n.form{\r\n  display: flex;\n}\n#messages li {\r\n  border-bottom: 1px solid #eee;\r\n  margin-bottom: 5px;\r\n  padding: 5px 0 5px 0;\n}\n.delayed {\r\n  -webkit-animation: fadein 1000ms;\r\n  -moz-animation: fadein 1000ms;\r\n  -ms-animation: fadein 1000ms;\r\n  -o-animation: fadein 1000ms;\r\n  animation: fadein 1000ms;\n}\r\n\r\n/* http://stackoverflow.com/a/11681331/2373138 */\n@keyframes fadein {\nfrom { opacity: 0;\n}\nto   { opacity: 1;\n}\n}\r\n\r\n/* Firefox < 16 */\n@-moz-keyframes fadein {\nfrom { opacity: 0;\n}\nto   { opacity: 1;\n}\n}\n@-webkit-keyframes fadein {\nfrom { opacity: 0;\n}\nto   { opacity: 1;\n}\n}\n@-ms-keyframes fadein {\nfrom { opacity: 0;\n}\nto   { opacity: 1;\n}\n}\n@-o-keyframes fadein {\nfrom { opacity: 0;\n}\nto   { opacity: 1;\n}\n}\r\n", ""]);
 
 // exports
 
@@ -3480,6 +3519,36 @@ try {
 
 /***/ }),
 
+/***/ "./node_modules/style-loader/index.js!./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./vue/components/Rest.vue?vue&type=style&index=0&id=4d51e4a6&scoped=true&lang=css&":
+/*!*****************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/style-loader!./node_modules/css-loader??ref--5-1!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src??ref--5-2!./node_modules/vue-loader/lib??vue-loader-options!./vue/components/Rest.vue?vue&type=style&index=0&id=4d51e4a6&scoped=true&lang=css& ***!
+  \*****************************************************************************************************************************************************************************************************************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(/*! !../../node_modules/css-loader??ref--5-1!../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../node_modules/postcss-loader/src??ref--5-2!../../node_modules/vue-loader/lib??vue-loader-options!./Rest.vue?vue&type=style&index=0&id=4d51e4a6&scoped=true&lang=css& */ "./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./vue/components/Rest.vue?vue&type=style&index=0&id=4d51e4a6&scoped=true&lang=css&");
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(/*! ../../node_modules/style-loader/lib/addStyles.js */ "./node_modules/style-loader/lib/addStyles.js")(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {}
+
+/***/ }),
+
 /***/ "./node_modules/style-loader/index.js!./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./vue/components/Socket.vue?vue&type=style&index=0&lang=css&":
 /*!*******************************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/style-loader!./node_modules/css-loader??ref--5-1!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src??ref--5-2!./node_modules/vue-loader/lib??vue-loader-options!./vue/components/Socket.vue?vue&type=style&index=0&lang=css& ***!
@@ -4133,12 +4202,7 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c(
-    "div",
-    { staticClass: "ap" },
-    [_c("h2", [_vm._v(" Send telemetry")]), _vm._v(" "), _c("socket")],
-    1
-  )
+  return _c("div", { staticClass: "ap" }, [_c("socket")], 1)
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -4164,28 +4228,32 @@ var render = function() {
   var _c = _vm._self._c || _h
   return _c("div", [
     _c("div", [
+      _c("div", { staticClass: "error" }, [_vm._v(_vm._s(this.error))]),
+      _vm._v(" "),
       _c("h5", [_vm._v(" Access Token")]),
       _vm._v(" "),
-      _c("input", {
-        directives: [
-          {
-            name: "model",
-            rawName: "v-model",
-            value: _vm.token,
-            expression: "token"
-          }
-        ],
-        staticClass: "form-control",
-        domProps: { value: _vm.token },
-        on: {
-          input: function($event) {
-            if ($event.target.composing) {
-              return
+      _c("label", [
+        _c("input", {
+          directives: [
+            {
+              name: "model",
+              rawName: "v-model",
+              value: _vm.token,
+              expression: "token"
             }
-            _vm.token = $event.target.value
+          ],
+          staticClass: "form-control",
+          domProps: { value: _vm.token },
+          on: {
+            input: function($event) {
+              if ($event.target.composing) {
+                return
+              }
+              _vm.token = $event.target.value
+            }
           }
-        }
-      })
+        })
+      ])
     ]),
     _vm._v(" "),
     _c("br"),
@@ -4193,117 +4261,123 @@ var render = function() {
     _c("div", [
       _c("h2", [_vm._v(" Send telemetry")]),
       _vm._v(" "),
-      _c("input", {
-        directives: [
-          {
-            name: "model",
-            rawName: "v-model",
-            value: _vm.telemetry,
-            expression: "telemetry"
-          }
-        ],
-        staticClass: "form-control",
-        attrs: { placeholder: "for example: temp=12" },
-        domProps: { value: _vm.telemetry },
-        on: {
-          input: function($event) {
-            if ($event.target.composing) {
-              return
+      _c("label", [
+        _c("div", [_vm._v(" Name")]),
+        _vm._v(" "),
+        _c("input", {
+          directives: [
+            {
+              name: "model",
+              rawName: "v-model",
+              value: _vm.telemetryName,
+              expression: "telemetryName"
             }
-            _vm.telemetry = $event.target.value
+          ],
+          staticClass: "form-control",
+          domProps: { value: _vm.telemetryName },
+          on: {
+            input: function($event) {
+              if ($event.target.composing) {
+                return
+              }
+              _vm.telemetryName = $event.target.value
+            }
           }
-        }
-      }),
+        }),
+        _vm._v(" "),
+        _c("div", [_vm._v(" Value ")]),
+        _vm._v(" "),
+        _c("input", {
+          directives: [
+            {
+              name: "model",
+              rawName: "v-model",
+              value: _vm.telemetryValue,
+              expression: "telemetryValue"
+            }
+          ],
+          staticClass: "form-control",
+          domProps: { value: _vm.telemetryValue },
+          on: {
+            input: function($event) {
+              if ($event.target.composing) {
+                return
+              }
+              _vm.telemetryValue = $event.target.value
+            }
+          }
+        })
+      ]),
       _vm._v(" "),
       _c("button", { on: { click: _vm.send } }, [_vm._v("send")]),
       _vm._v(" "),
-      _c("table", { staticClass: "table" }, [
-        _vm._m(0),
-        _vm._v(" "),
-        _c(
-          "tbody",
-          _vm._l(this.savedItems, function(item) {
-            return _c("tr", [
-              _c("td", [_vm._v(_vm._s(item.id))]),
-              _vm._v(" "),
-              _c("td", [_vm._v(_vm._s(item.name))]),
-              _vm._v(" "),
-              _c("td", [_vm._v(_vm._s(item.value))]),
-              _vm._v(" "),
-              _c("td", [_vm._v(_vm._s(item.time))])
-            ])
-          }),
-          0
-        )
-      ])
+      _vm.telemetryId !== ""
+        ? _c("div", [
+            _vm._v("Telemetry was added with id: " + _vm._s(this.telemetryId))
+          ])
+        : _vm._e(),
+      _vm._v(" "),
+      this.accessError !== ""
+        ? _c("div", { staticClass: "error" }, [
+            _vm._v(_vm._s(this.accessError))
+          ])
+        : _vm._e()
     ]),
     _vm._v(" "),
     _c("div", { staticClass: "api-get" }, [
       _c("h2", [_vm._v(" Find telemetry")]),
       _vm._v(" "),
-      _c("input", {
-        directives: [
-          {
-            name: "model",
-            rawName: "v-model",
-            value: _vm.itemName,
-            expression: "itemName"
-          }
-        ],
-        staticClass: "form-control",
-        attrs: { placeholder: "item name" },
-        domProps: { value: _vm.itemName },
-        on: {
-          input: function($event) {
-            if ($event.target.composing) {
-              return
+      _c("label", [
+        _c("input", {
+          directives: [
+            {
+              name: "model",
+              rawName: "v-model",
+              value: _vm.itemName,
+              expression: "itemName"
             }
-            _vm.itemName = $event.target.value
+          ],
+          staticClass: "form-control",
+          attrs: { placeholder: "item name" },
+          domProps: { value: _vm.itemName },
+          on: {
+            input: function($event) {
+              if ($event.target.composing) {
+                return
+              }
+              _vm.itemName = $event.target.value
+            }
           }
-        }
-      }),
+        })
+      ]),
       _vm._v(" "),
       _c("button", { on: { click: _vm.get } }, [_vm._v("Find")]),
       _vm._v(" "),
-      _c("table", { staticClass: "table" }, [
-        _vm._m(1),
-        _vm._v(" "),
-        _c(
-          "tbody",
-          _vm._l(_vm.allArticles, function(article) {
-            return _c("tr", [
-              _c("td", [_vm._v(_vm._s(article.id))]),
-              _vm._v(" "),
-              _c("td", [_vm._v(_vm._s(article.name))]),
-              _vm._v(" "),
-              _c("td", [_vm._v(_vm._s(article.value))]),
-              _vm._v(" "),
-              _c("td", [_vm._v(_vm._s(article.time))])
-            ])
-          }),
-          0
-        )
-      ])
+      _vm.selectedTelemetries.length !== 0
+        ? _c("table", { staticClass: "table" }, [
+            _vm._m(0),
+            _vm._v(" "),
+            _c(
+              "tbody",
+              _vm._l(_vm.selectedTelemetries, function(telemetry) {
+                return _c("tr", [
+                  _c("td", [_vm._v(_vm._s(telemetry.id))]),
+                  _vm._v(" "),
+                  _c("td", [_vm._v(_vm._s(telemetry.name))]),
+                  _vm._v(" "),
+                  _c("td", [_vm._v(_vm._s(telemetry.value))]),
+                  _vm._v(" "),
+                  _c("td", [_vm._v(_vm._s(telemetry.time))])
+                ])
+              }),
+              0
+            )
+          ])
+        : _vm._e()
     ])
   ])
 }
 var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("thead", [
-      _c("tr", [
-        _c("th", { attrs: { scope: "col" } }, [_vm._v("id")]),
-        _vm._v(" "),
-        _c("th", { attrs: { scope: "col" } }, [_vm._v("name")]),
-        _vm._v(" "),
-        _c("th", { attrs: { scope: "col" } }, [_vm._v("values")]),
-        _vm._v(" "),
-        _c("th", { attrs: { scope: "col" } }, [_vm._v("create time")])
-      ])
-    ])
-  },
   function() {
     var _vm = this
     var _h = _vm.$createElement
@@ -4343,35 +4417,118 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", { staticClass: "socket" }, [
-    _c("label", [
-      _c("input", {
-        directives: [
-          {
-            name: "model",
-            rawName: "v-model",
-            value: _vm.itemName,
-            expression: "itemName"
-          }
-        ],
-        staticClass: "form-control",
-        attrs: { placeholder: "item name" },
-        domProps: { value: _vm.itemName },
-        on: {
-          input: function($event) {
-            if ($event.target.composing) {
-              return
+    _c("div", { staticClass: "error" }, [_vm._v(_vm._s(this.error))]),
+    _vm._v(" "),
+    _c("div", { staticClass: "form" }, [
+      _c("div", { staticClass: "add-telemetry" }, [
+        _c("h2", [_vm._v(" Send telemetry")]),
+        _vm._v(" "),
+        _c("label", [
+          _c("div", [_vm._v(" Name")]),
+          _vm._v(" "),
+          _c("input", {
+            directives: [
+              {
+                name: "model",
+                rawName: "v-model",
+                value: _vm.telemetryName,
+                expression: "telemetryName"
+              }
+            ],
+            staticClass: "form-control",
+            domProps: { value: _vm.telemetryName },
+            on: {
+              input: function($event) {
+                if ($event.target.composing) {
+                  return
+                }
+                _vm.telemetryName = $event.target.value
+              }
             }
-            _vm.itemName = $event.target.value
-          }
-        }
-      })
+          }),
+          _vm._v(" "),
+          _c("div", [_vm._v(" Value")]),
+          _vm._v(" "),
+          _c("input", {
+            directives: [
+              {
+                name: "model",
+                rawName: "v-model",
+                value: _vm.telemetryValue,
+                expression: "telemetryValue"
+              }
+            ],
+            staticClass: "form-control",
+            domProps: { value: _vm.telemetryValue },
+            on: {
+              input: function($event) {
+                if ($event.target.composing) {
+                  return
+                }
+                _vm.telemetryValue = $event.target.value
+              }
+            }
+          })
+        ]),
+        _vm._v(" "),
+        _c(
+          "button",
+          {
+            on: {
+              click: function($event) {
+                return _vm.createTelemetry()
+              }
+            }
+          },
+          [_vm._v("Send")]
+        )
+      ]),
+      _vm._v(" "),
+      _c("div", { staticClass: "find-telemetry" }, [
+        _c("h2", [_vm._v(" Find telemetry")]),
+        _vm._v(" "),
+        _c("label", [
+          _c("div", [_vm._v(" Name")]),
+          _vm._v(" "),
+          _c("input", {
+            directives: [
+              {
+                name: "model",
+                rawName: "v-model",
+                value: _vm.itemName,
+                expression: "itemName"
+              }
+            ],
+            staticClass: "form-control",
+            domProps: { value: _vm.itemName },
+            on: {
+              input: function($event) {
+                if ($event.target.composing) {
+                  return
+                }
+                _vm.itemName = $event.target.value
+              }
+            }
+          })
+        ]),
+        _vm._v(" "),
+        _c(
+          "button",
+          {
+            on: {
+              click: function($event) {
+                return _vm.findTelemetry()
+              }
+            }
+          },
+          [_vm._v("Send")]
+        )
+      ])
     ]),
     _vm._v(" "),
-    _c("button", { on: { click: _vm.sendToSocket } }, [_vm._v("Send")]),
+    _c("div", [_vm._v("Recently reviewed:")]),
     _vm._v(" "),
-    _c("div", [_vm._v("You recently sent:")]),
-    _vm._v(" "),
-    _c("ul", { attrs: { id: "messages" } })
+    _c("ul", { attrs: { id: "createdMessages" } })
   ])
 }
 var staticRenderFns = []
@@ -16690,7 +16847,9 @@ new vue__WEBPACK_IMPORTED_MODULE_0___default.a({
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Rest_vue_vue_type_template_id_4d51e4a6_scoped_true___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Rest.vue?vue&type=template&id=4d51e4a6&scoped=true& */ "./vue/components/Rest.vue?vue&type=template&id=4d51e4a6&scoped=true&");
 /* harmony import */ var _Rest_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Rest.vue?vue&type=script&lang=js& */ "./vue/components/Rest.vue?vue&type=script&lang=js&");
-/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+/* empty/unused harmony star reexport *//* harmony import */ var _Rest_vue_vue_type_style_index_0_id_4d51e4a6_scoped_true_lang_css___WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Rest.vue?vue&type=style&index=0&id=4d51e4a6&scoped=true&lang=css& */ "./vue/components/Rest.vue?vue&type=style&index=0&id=4d51e4a6&scoped=true&lang=css&");
+/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
 
 
 
@@ -16698,7 +16857,7 @@ __webpack_require__.r(__webpack_exports__);
 
 /* normalize component */
 
-var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__["default"])(
   _Rest_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
   _Rest_vue_vue_type_template_id_4d51e4a6_scoped_true___WEBPACK_IMPORTED_MODULE_0__["render"],
   _Rest_vue_vue_type_template_id_4d51e4a6_scoped_true___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
@@ -16727,6 +16886,22 @@ component.options.__file = "vue/components/Rest.vue"
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Rest_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/babel-loader/lib??ref--4-0!../../node_modules/vue-loader/lib??vue-loader-options!./Rest.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./vue/components/Rest.vue?vue&type=script&lang=js&");
 /* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Rest_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./vue/components/Rest.vue?vue&type=style&index=0&id=4d51e4a6&scoped=true&lang=css&":
+/*!******************************************************************************************!*\
+  !*** ./vue/components/Rest.vue?vue&type=style&index=0&id=4d51e4a6&scoped=true&lang=css& ***!
+  \******************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_5_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_5_2_node_modules_vue_loader_lib_index_js_vue_loader_options_Rest_vue_vue_type_style_index_0_id_4d51e4a6_scoped_true_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../node_modules/style-loader!../../node_modules/css-loader??ref--5-1!../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../node_modules/postcss-loader/src??ref--5-2!../../node_modules/vue-loader/lib??vue-loader-options!./Rest.vue?vue&type=style&index=0&id=4d51e4a6&scoped=true&lang=css& */ "./node_modules/style-loader/index.js!./node_modules/css-loader/index.js?!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/src/index.js?!./node_modules/vue-loader/lib/index.js?!./vue/components/Rest.vue?vue&type=style&index=0&id=4d51e4a6&scoped=true&lang=css&");
+/* harmony import */ var _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_5_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_5_2_node_modules_vue_loader_lib_index_js_vue_loader_options_Rest_vue_vue_type_style_index_0_id_4d51e4a6_scoped_true_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_5_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_5_2_node_modules_vue_loader_lib_index_js_vue_loader_options_Rest_vue_vue_type_style_index_0_id_4d51e4a6_scoped_true_lang_css___WEBPACK_IMPORTED_MODULE_0__);
+/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_5_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_5_2_node_modules_vue_loader_lib_index_js_vue_loader_options_Rest_vue_vue_type_style_index_0_id_4d51e4a6_scoped_true_lang_css___WEBPACK_IMPORTED_MODULE_0__) if(["default"].indexOf(__WEBPACK_IMPORT_KEY__) < 0) (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_5_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_5_2_node_modules_vue_loader_lib_index_js_vue_loader_options_Rest_vue_vue_type_style_index_0_id_4d51e4a6_scoped_true_lang_css___WEBPACK_IMPORTED_MODULE_0__[key]; }) }(__WEBPACK_IMPORT_KEY__));
+ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_style_loader_index_js_node_modules_css_loader_index_js_ref_5_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_ref_5_2_node_modules_vue_loader_lib_index_js_vue_loader_options_Rest_vue_vue_type_style_index_0_id_4d51e4a6_scoped_true_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
 
 /***/ }),
 

@@ -3,6 +3,7 @@
 
 namespace app\modules\rest\controllers;
 
+use app\models\User;
 use yii\web\Response;
 use app\models\Telemetries;
 use yii\data\ActiveDataFilter;
@@ -31,29 +32,35 @@ class TelemetryController extends  Controller
         ];
         return $behaviors;
     }
-    // public function beforeAction() { сгенерировать accessToken}
-    public function actionIndex($name1){
-            $name = \Yii::$app->request->getBodyParam('name');
+    public function actionIndex($name1)
+    {
+        if (\Yii::$app->user->can("browseTelemetry")){
             $query = Telemetries::find();
 
-            if ($name1 !== ""){
+            if ($name1 !== "") {
                 $query = Telemetries::find()->andWhere(['name' => $name1]);
             }
-            //$query->addSelect('JSON_QUERY(value)');
             $query->asArray();
             $dataProvider = new ActiveDataProvider([
-                'query' => $query, //добавить фильтры
+                'query' => $query,
 
             ]);
             $array = $dataProvider->getModels();
-            for ($i=0;$i<count($array);$i++){
-                  $array[$i]['value'] = json_decode($array[$i]['value']);
+            for ($i = 0; $i < count($array); $i++) {
+                $array[$i]['value'] = json_decode($array[$i]['value']);
             }
-            return  $array;
+            return $array;
+        }
+        return \Yii::$app->view->renderFile('@app/views/site/error.php',
+            [
+                'name' => 'Forbidden',
+                'message' => 'You should have admin permissions to see this page.'
+            ]);
     }
 
     public function actionCreate()
     {
+        if(\Yii::$app->user->can("createTelemetry")) {
             $telemetry = new Telemetries();
             $data = \Yii::$app->request->getBodyParams();
             if (array_key_exists('name', $data) && array_key_exists('value', $data)) {
@@ -69,5 +76,7 @@ class TelemetryController extends  Controller
                 $telemetry->save();
             }
             return $telemetry;
+        }
+        return null;
     }
 }

@@ -12,15 +12,7 @@ use yii\web\Controller;
 
 class UserController extends Controller
 {
-    function actionIndex(){
-        if (\Yii::$app->user->can('editUser')) {
-            return $this->render('index');}
-        return \Yii::$app->view->renderFile('@app/views/site/error.php',
-            [
-                'name' => 'Forbidden',
-                'message' => 'You should have admin permissions to see this page.'
-            ]);
-    }
+
 
     function  actionRegister(){
         if (\Yii::$app->user->can('createUser')) {
@@ -81,5 +73,10 @@ class UserController extends Controller
             ]);
     }
 
-
+    function actionProfile(){
+        $model = User::findByUsername(\Yii::$app->user->identity->login );
+        return $this->render('profile', [
+            'model' => $model,
+        ]);
+    }
 }
